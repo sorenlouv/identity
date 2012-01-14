@@ -3,15 +3,6 @@ header('Content-type: text/html; charset=utf-8');
 
 
 if(isset($_POST["firstName"]) || isset($_GET["checktor"])){
-	$text = array('æ', 'ø', 'å');
-	$ascii = array('%E6', '%F8', '%E5');	
-
-
-	// manually encoding since I can't seem to prepare the content-type properly
-	$firstName = str_replace($text, $ascii, strtolower($_POST["firstName"]));
-	$lastName = str_replace($text, $ascii, strtolower($_POST["lastName"]));
-	$dob = $_POST["dob"];	
-	$cpr = $_POST["cpr"];
 	
 	$cookieFile = tempnam("/tmp", "COOKIE");	
 	//$cookieFile = "testcookie";	
@@ -94,6 +85,15 @@ if(isset($_POST["firstName"]) || isset($_GET["checktor"])){
 		"ch" => $ch,
 	));
 
+	// manually encoding since I can't seem to prepare the content-type properly	
+	$text = array('æ', 'ø', 'å');
+	$ascii = array('%E6', '%F8', '%E5');	
+
+	// set variables
+	$firstName = str_replace($text, $ascii, strtolower($_POST["firstName"]));
+	$lastName = str_replace($text, $ascii, strtolower($_POST["lastName"]));
+	$dob = $_POST["dob"];	
+	$cpr = $_POST["cpr"];	
 	$email = $firstName."@".$lastName.".dk";
 	$email = ereg_replace("[^a-zA-Z@\.]", "", $email);
 	
