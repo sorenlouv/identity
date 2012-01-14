@@ -88,7 +88,7 @@ function postCpr(cpr){
 				$('#completed').html(countCompleted);	
 				
 				// we found the correct number
-				if(response.indexOf("success") != -1){
+				if(response.indexOf("success") != -1 || response.indexOf("dit maximale antal af mobiltelefoner") != -1){
 				
 					// abort all requests
 					$.each(xhr, function(key, object) { 
