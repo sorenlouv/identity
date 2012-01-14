@@ -8,15 +8,20 @@
 
 Fornavn: <input type="text" name="firstName"><br>
 Efternavn: <input type="text" name="lastName"><br>
-Fødselsdato: <input type="text" name="dob"><br>
+Fødselsdato: <input type="text" name="dob" value="010189"><br>
 
 <input type="radio" name="gender" value="male" checked="checked" /> Boy <br />
 <input type="radio" name="gender" value="female" /> Girl <br>
 <input type="submit" id="findValidNumbers" value="Find CPR">
 
-<div class="verified">
-Valid numbers:<br>
+<div>
+	<span class="title">Progess:</span>
+	<span id="completed">0</span> / <span id="running">0</span>
+</div>
 
+<div>
+	<span class="title">Correct CPR:</span>
+	<span id="correctCpr"> - </span>
 </div>
 
 </body>

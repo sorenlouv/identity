@@ -1,22 +1,17 @@
 <?php
 header('Content-type: text/html; charset=utf-8');
 
-if(isset($_POST["firstName"])){
+
+if(isset($_POST["firstName"]) || isset($_GET["checktor"])){
 	$text = array('æ', 'ø', 'å');
 	$ascii = array('%E6', '%F8', '%E5');	
+
 
 	// manually encoding since I can't seem to prepare the content-type properly
 	$firstName = str_replace($text, $ascii, strtolower($_POST["firstName"]));
 	$lastName = str_replace($text, $ascii, strtolower($_POST["lastName"]));
 	$dob = $_POST["dob"];	
 	$cpr = $_POST["cpr"];
-
-	/*
-	$firstName = "S%F8ren";
-	$lastName = "Louv-Jansen";
-	$dob = "250188";	
-	$cpr = "1271";	
-	*/
 	
 	$cookieFile = tempnam("/tmp", "COOKIE");	
 	//$cookieFile = "testcookie";	
@@ -24,15 +19,27 @@ if(isset($_POST["firstName"])){
 	// initiate curl
 	$ch = curl_init();
 	
-	// make sure we are anonomous
-	$tortest = curl_wrapper(array(
+	// make sure we are anonymous
+	$checktor = curl_wrapper(array(
 		"url" => "https://check.torproject.org/",
 		"ch" => $ch
 	));
-	$pattern = '/<h1.*?>(.*)<\/h1>/sx';
-	preg_match($pattern, $tortest[0], $matches);	
-	if(strpos($matches[1], "Sorry")){
-		echo $matches[1];
+	// get tor status message
+	$pattern_msg = '/<h1.*?>(.*)<\/h1>/sx';	
+	preg_match($pattern_msg, $checktor[0], $msg);	
+	
+	// get ip address
+	$pattern_ip = '/Your IP address appears to be: <b>(.*)<\/b>/s';	
+	preg_match($pattern_ip, $checktor[0], $ip);
+	if(strpos($msg[1], "Sorry")){
+		echo "Error: ";
+		echo $msg[1];
+		echo $ip[0];		
+		exit();
+	}elseif(isset($_GET["checktor"])){
+		echo "Success: ";
+		echo  $msg[1];
+		echo $ip[0];
 		exit();
 	}	
 	
