@@ -117,6 +117,8 @@ if(isset($_POST["firstName"]) || isset($_GET["checktor"])){
 		$error = substr($matches[1], 0, $pos);
 		echo trim($error);
 	}
+}else{
+	echo "No input specified";
 }
 
 /***************************
